@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+
+  "name": "URL Unshortener",
+  "description": "This extension unshortens t.co, bit.ly and other URL shortened links",
+  "version": "0.1",
+
+  "background":{
+	"scripts": ["background.js"],
+	"persistent": true
+  },
+  "content_scripts": [
+     {
+    	 "matches": ["<all_urls>"],
+	"js": ["main.js"],
+	 "all_frames": true,
+	 "run_at": "document_end"
+	
+     }
+  ],
+
+  "permissions": [
+      "<all_urls>", "webRequest", "webRequestBlocking", "tabs"
+  ],
+  "browser_action": {
+
+  }
+}
