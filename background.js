@@ -4,7 +4,7 @@ function known(url){
     return g_registry[url];
 }
 function resolve(url){
-    return g_registry[url].finalUrl;
+    return g_registry[url];
 }
 function addIntermediate(url, iurl){
     g_registry[url].intermediate.push(iurl);
@@ -18,13 +18,17 @@ function register(url, data){
 function getData(url){
     return g_registry[url].data;
 }
+function respond(sendResponse, url){
+    var data = resolve(url);
+    sendResponse({newUrl: data.finalUrl, intermediateUrls: data.intermediate});
+}
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
 	var url = request.resolveUrl;
 	if (known(url)){
 	    console.log("known url " + url);
-	    sendResponse({newUrl: resolve(url)});
+	    respond(sendResponse, url);
 	    return false;
 	}
 	frame = document.createElement('iframe');
@@ -35,12 +39,6 @@ chrome.runtime.onMessage.addListener(
 	return true;
     });
 
-function shouldUnshorten(url){
-    return url.indexOf("http://t.co/") == 0 ||
-	url.indexOf("http://ow.ly/") == 0 ||
-	url.indexOf("http://owl.li/") == 0 ||
-	url.indexOf("http://bit.ly/") == 0;
-}
 
 var g_frameRegistry = new Object();
 chrome.webRequest.onBeforeRequest.addListener(function(details){
@@ -50,9 +48,9 @@ chrome.webRequest.onBeforeRequest.addListener(function(details){
     var url = details.url;
     if (known(url)){
 	g_frameRegistry[details.frameId] = url;
-	console.log("frame registry: " + g_frameRegistry);
+	//console.log("frame registry: " + g_frameRegistry);
     } else{
-	console.log("beforeRequest: " + JSON.stringify(details));
+	//console.log("beforeRequest: " + JSON.stringify(details));
 	var start_url = g_frameRegistry[details.frameId];
 	if (start_url){
 	    if (shouldUnshorten(url)){
@@ -61,9 +59,9 @@ chrome.webRequest.onBeforeRequest.addListener(function(details){
 	    } else{
 		console.log("final url: " + url);
 		addFinal(start_url, url);
-		getData(start_url).cb({newUrl: url});
 		document.body.removeChild(getData(start_url).frame);
 		delete g_frameRegistry[details.frameId];
+		respond(getData(start_url).cb, start_url);
 		return {"cancel": true};
 	    }
 	}

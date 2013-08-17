@@ -1,41 +1,57 @@
-function shouldUnshorten(url)
-{
-    return (url.substr(0, 12) == "http://t.co/") || url.indexOf("http://bit.ly/") == 0;
+function processElement(e){
+    if (e && e.tagName && e.tagName.toLowerCase() == "a" && shouldUnshorten(e.href))
+    {
+	chrome.runtime.sendMessage({resolveUrl: e.href}, function(response) {
+	    if (response){
+		var redirectUrls = [e.href];
+		for (var i = 0; i < response.intermediateUrls.length; ++i){
+		    redirectUrls.push(response.intermediateUrls[i]);
+		}
+		console.log(JSON.stringify(redirectUrls) + " => " + response.newUrl);
+		for (var i in redirectUrls){
+		    if (e.innerHTML.indexOf(redirectUrls[i]) >= 0){
+			e.innerHTML = e.innerHTML.replace(redirectUrls[i], response.newUrl);
+			return;
+		    }
+		}
+		for (var i in redirectUrls){
+		    var schemaLessUrl = redirectUrls[i].replace(/^\w+:\/\//, "");
+		    if (e.innerHTML.indexOf(schemaLessUrl) >= 0){
+			e.innerHTML = e.innerHTML.replace(schemaLessUrl, response.newUrl);
+			return;
+		    }
+		}
+		//e.innerHTML = response.newUrl;
+	    }
+	});
+    }
 }
 
-var done = false;
-function processElement(e){
-    //console.log(e);
-    if (!done && e && e.tagName && e.tagName.toLowerCase() == "a" && shouldUnshorten(e.href))
-    {
-	//e.href = "http://go.com/";
-	//console.log(e.href);
-	//e.style["color"] = "red";
-	//document.write("<iframe style='display:hidden' src='" + e.href + "'></iframe>");
-	chrome.runtime.sendMessage({resolveUrl: e.href}, function(response) {
-	    //console.log(response.newUrl);
-	    e.innerHTML = response.newUrl;
-	    console.log(e.text);
-	});
-	//done = true;
+function processTree(t){
+    processElement(t);
+    if (t.getElementsByTagName){
+	var as = t.getElementsByTagName("a");
+	for (var i = 0; i < as.length; ++i){
+	    processElement(as[i]);
+	}
     }
+}
+
+for (var i = 0; i < document.links.length; ++i){
+    processElement(document.links[i]);
 }
 
 var m = new MutationObserver(function(mutations){
     for (var i = 0; i < mutations.length; ++i){
 	var evt = mutations[i];
 	if (evt.target){
-	    processElement(evt.target);
+	    processTree(evt.target);
 	}
 	if (evt.addedNodes){
 	    for (var j = 0; j < evt.addedNodes.length; ++j){
-		processElement(evt.addedNodes[j]);
+		processTree(evt.addedNodes[j]);
 	    }
 	}
     }
 });
-
-for (var i = 0; i < document.links.length; ++i){
-    processElement(document.links[i]);
-}
 m.observe(document, {"childList": true, "attributes": true, "subtree": true});
