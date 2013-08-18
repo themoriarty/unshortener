@@ -7,7 +7,7 @@ function processElement(e){
 		for (var i = 0; i < response.intermediateUrls.length; ++i){
 		    redirectUrls.push(response.intermediateUrls[i]);
 		}
-		console.log(JSON.stringify(redirectUrls) + " => " + response.newUrl);
+		//console.log(JSON.stringify(redirectUrls) + " => " + response.newUrl);
 		for (var i in redirectUrls){
 		    if (e.innerHTML.indexOf(redirectUrls[i]) >= 0){
 			e.innerHTML = e.innerHTML.replace(redirectUrls[i], response.newUrl);

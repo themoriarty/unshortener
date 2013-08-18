@@ -12,6 +12,9 @@ function addIntermediate(url, iurl){
 function addFinal(url, final_url){
     g_registry[url].finalUrl = final_url;
 }
+function addCb(url, cb){
+    g_registry[url].data.cbs.push(cb);
+}
 function register(url, data){
     g_registry[url] = {"data": data, intermediate: new Array()};
 }
@@ -27,14 +30,19 @@ chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
 	var url = request.resolveUrl;
 	if (known(url)){
-	    console.log("known url " + url);
-	    respond(sendResponse, url);
-	    return false;
+	    if (resolve(url).finalUrl){
+		console.log("known url " + url);
+		respond(sendResponse, url);
+		return false;
+	    } else{
+		addCb(url, sendResponse);
+		return true;
+	    }
 	}
 	frame = document.createElement('iframe');
 	frame.sandbox = "";
 	frame.setAttribute('src', url);
-	register(url, {frame: frame, cb: sendResponse});
+	register(url, {frame: frame, cbs: [sendResponse]});
 	document.body.appendChild(frame);	
 	return true;
     });
@@ -61,7 +69,10 @@ chrome.webRequest.onBeforeRequest.addListener(function(details){
 		addFinal(start_url, url);
 		document.body.removeChild(getData(start_url).frame);
 		delete g_frameRegistry[details.frameId];
-		respond(getData(start_url).cb, start_url);
+		for (var i in getData(start_url).cbs){
+		    respond(getData(start_url).cbs[i], start_url);
+		}
+		getData(start_url).cbs = new Array();
 		return {"cancel": true};
 	    }
 	}
