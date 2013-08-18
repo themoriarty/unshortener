@@ -2,8 +2,8 @@
     "manifest_version": 2,
 
     "name": "URL Unshortener",
-    "description": "This extension unshortens t.co, bit.ly and other URL shortened links",
-    "version": "0.1.1",
+    "description": "This extension unshortens t.co, bit.ly and other shortened links",
+    "version": "0.1.2",
 
     "icons": {
 	"48": "icon48.png",
