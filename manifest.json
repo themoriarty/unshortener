@@ -3,7 +3,7 @@
 
     "name": "URL Unshortener",
     "description": "This extension unshortens t.co, bit.ly and other shortened links",
-    "version": "0.1.2",
+    "version": "0.1.3",
 
     "icons": {
 	"48": "icon48.png",

@@ -23,7 +23,7 @@ PrefixDictionary.prototype.match = function(url){
 var g_prefixes = new PrefixDictionary();
 g_prefixes.add("http://t.co/").add("http://ow.ly/").add("http://owl.li/").add("http://bit.ly/");
 g_prefixes.add("http://tcrn.ch/").add("http://vk.cc/").add("http://lifehac.kr/").add("http://clck.ru/");
-g_prefixes.add("http://tinyurl.com/").add("http://goo.gl/");
+g_prefixes.add("http://tinyurl.com/").add("http://goo.gl/").add("http://j.mp/").add("http://fb.me/");
 
 function shouldUnshorten(url){
     return g_prefixes.match(url);
